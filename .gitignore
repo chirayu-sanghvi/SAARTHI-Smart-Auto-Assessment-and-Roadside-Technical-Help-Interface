@@ -1,7 +1,6 @@
 # Ignore all .pth files
 *.pth
 instance/
-mmdetection/
 # Logs
 logs
 *.log
