@@ -1,0 +1,88 @@
+# Ignore all .pth files
+*.pth
+instance/
+mmdetection/
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Compiled bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+venv/
+.env
+.venv/
+ENV/
+env/
+venv.bak/
+env.bak/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# pyenv
+.python-version
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ignore IDE-specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore macOS-specific files
+.DS_Store
+
+# Ignore node_modules directory
+node_modules/
+
+# Ignore test data
+tests/data/
+tests/*.log
+
+# Ignore specific directories from your project tree
+dummy checkpoints/
+instance/
+work_dirs/
+static/uploads/
+mmdetection/mmdet.egg-info/
+mmdetection/checkpoints/
+mmdetection/output/
+
+# Ignore checkpoints and temporary files
+checkpoints/
+*.tmp
+*.swp
