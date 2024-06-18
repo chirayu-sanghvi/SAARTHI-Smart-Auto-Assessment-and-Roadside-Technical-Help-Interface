@@ -1,0 +1,860 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/botui/build/botui.min.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/botui/build/botui-theme-default.css" rel="stylesheet" type="text/css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBwNPVNPUUaxDK7FMh_l8NatX8xsWdfE-8&libraries=places"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        body {
+            background-color: #fff;
+            color: #00046b;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 5px;
+        }
+        .navbar-custom {
+            background-color: #00046b;
+            color: #fff;
+            padding: 10px;
+            font-size: 25px;
+            font-weight: bold;
+        }
+        .navbar-custom a {
+            color: #fff;
+        }
+
+        .navbar-custom a:hover{
+            color: #ffd700;
+        }
+        .card {
+            border-radius: 5px;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+            border: 3px solid #00046b;
+        }
+        .card-img-top {
+            object-fit: cover;
+            border-bottom: 5px solid #dee2e6;
+        }
+        #botui-app {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            border-radius: 100%;  /* Circle initially */
+            background-color: #00046b; /* Blue background */
+            color: white;
+            text-align: center;
+            line-height: 60px; /* Center the text vertically */
+            font-size: 30px !important;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            overflow: hidden;
+            transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;
+        }
+
+        .botui-actions-buttons-button{
+            font-size: 1.5rem !important;
+            background: #00046b;
+            color: #fff;
+        }
+
+        .botui-message-content {
+            font-size: 1.4rem !important;
+            color: #00046b;
+        }
+        
+        #botui-app.expanded {
+            width: 700px; /* Expanded width */
+            height: 900px; /* Expanded height */
+            border-radius: 10px; /* Less rounded corners for rectangle shape */
+            line-height: normal; /* Reset line height for text inside */
+            padding: 10px; /* Padding inside the chatbot */
+            text-align: left; /* Align text to the left */
+        }
+        .toggle-button {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 12px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            display: none; /* Initially hidden */
+        }
+        
+        #botui-app.expanded .toggle-button, #botui-app.expanded .close-button {
+            display: block; /* Show buttons when expanded */
+        }
+        
+        .chart {
+            height: 300px; /* Placeholder for the chart height */
+        }
+        .section {
+            padding: 5px;
+        }
+        .full-height {
+            height: 100%;
+        }
+        .waving-hand {
+            animation: wave 2.1s 0.6s infinite;
+            transform-origin: 75% 75%;
+            font-size: 40px;
+            display: inline-block;
+          }
+        @keyframes wave {
+            0% {
+              transform: rotate(0deg);
+            }
+            10% {
+              transform: rotate(16deg);
+            }
+            20% {
+              transform: rotate(-6deg);
+            }
+            30% {
+              transform: rotate(16deg);
+            }
+            40% {
+              transform: rotate(-4deg);
+            }
+            50% {
+              transform: rotate(16deg);
+            }
+            60% {
+              transform: rotate(0deg);
+            }
+            100% {
+              transform: rotate(0deg);
+            }
+          }
+
+          #labelPieChart  {
+            width: 450px  !important; /* Adjust width as needed */
+            height: 450px !important; /* Adjust height as needed */
+        }
+
+        #confidenceBarChart {
+            width: 450px  !important; /* Adjust width as needed */
+            height: 450px !important; /* Adjust height as needed */
+        }
+        .navbar-custom .container-fluid {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .navbar-center {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0; /* Remove default margins from h2 to align text better */
+        }
+        
+        .navbar-nav {
+            flex-grow: 1;
+            justify-content: flex-end;
+            display: flex;
+        }
+        
+        .navbar-brand {
+            flex-grow: 1;
+        }
+        
+
+    </style>
+    <title>Processing Results</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid">
+            <!-- Logo on the left -->
+            <a class="navbar-brand" href="#">
+                <img src="/static/image/Saarthi_logo.PNG" alt="Company Logo" style="width: 120px; height: 100px;">
+            </a>
+            
+            <!-- Center text -->
+            <h2 class="navbar-center">Car Damage Assessment Result</h2>
+            
+            <!-- Links on the right -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item"><a class="nav-link" href="/user_dashboard">User Dashboard | </a></li>
+                    <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <div class="row">
+            {% for result in results %}
+            <div class="col-md-6 section">
+                <div class="card full-height">
+                    <img src="{{ url_for('static', filename=result.original) }}" class="card-img-top" alt="Original Image">
+                    <div class="card-body">
+                        <h5 class="card-title">Original Image</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 section">
+                <div class="card full-height">
+                    <img src="{{ url_for('static', filename=result.processed) }}" class="card-img-top" alt="Processed Image">
+                    <div class="card-body">
+                        <h5 class="card-title">Damage Detection and Instance Segmentation</h5>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="row">
+            {% for result in results %}
+            <div class="col-md-6 section">
+                <div class="card full-height">
+                    <img src="{{ url_for('static', filename=result.boxesonly) }}" class="card-img-top" alt="Bounding Box Image">
+                    <div class="card-body">
+                        <h5 class="card-title">Non Overlapping Major Damages</h5>
+                        <hr>
+                        <p style="font-size: 25px !important;">Our system uses smart technology to analyze photos of your car and pinpoint where it's been damaged. It carefully checks each 
+                            detected damage to make sure we're only looking at the real issues, without any overlaps. Once we've identified these damages, 
+                            we estimate how much each repair could cost. This estimate considers the size and severity of each damage, helping us provide
+                             you with a clear and detailed cost breakdown. This way, you get a transparent view of the potential repair expenses. </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 section">
+                <div class="card full-height">
+                    <div class="row">
+                        <!-- Salient Object Detection -->
+                        <div class="col-md-6">
+                            <div class="card-body">
+                                <h2 class="card-title">Salient Object Detection<hr></h2>
+                                <img src="{{ url_for('static', filename=result.salient_od) }}" class="card-img-top" alt="Processed Image" style="margin-left:10%; width: 450px; height: 450px; object-fit: contain;">
+                            </div>
+                        </div>
+                        
+
+
+                        <!-- Damage Summary Chart -->
+                        <div class="col-md-6">
+                            <div class="card-body">
+                                <h2 class="card-title">Damage Summary Chart</h2><hr>
+                                <canvas width="100" height="100" id="labelPieChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Label Information -->
+                        <div class="col-md-6">
+                            <div class="card-body">
+                                <h2 class="card-title">Detailed Label Information</h2><hr>
+                                <p id="summaryText"></p>
+                            </div>
+                        </div>
+                        
+
+                        
+                        <!-- Confidence Score Analysis -->
+                        <div class="col-md-6">
+                            <div class="card-body">
+                                <h2 class="card-title">Confidence Score Analysis</h2><hr>
+                                <canvas id="confidenceBarChart" width="400" height="400" ></canvas> <!-- Placeholder for a bar chart or similar visualization -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% endfor %}
+        </div> 
+        <div class = "row">
+            <div class="col-md-6 section">
+                <div style="padding:10px;" class="card full-height">
+                    <h2 class="card-title">Report Description</h2><hr>
+                    <div class="card-body" style="font-size:20px; !important;">
+                        <p>
+                            Thank you for using SAARTHI for your vehicle damage assessment. Below is a brief summary of the findings based on our latest analysis:
+                        </p>
+                        <ul>
+                            <li>Estimated Average Repair Cost: <strong> ${{ total_cost_report }} </strong> </li>
+                        </ul>
+                        <p>
+                            Our AI-driven assessment evaluates each identified damage, estimating potential repair costs. For more in-depth analytics such as the total number of damages, the most frequent damage types, and a detailed confidence analysis, please refer to the comprehensive graphs and statistics sections included on this page.
+                        </p>
+                        <p>
+                            Detailed insights into the most common types of damages and their respective confidence scores can be found in the assessment report. This section provides a visual and quantitative representation of the damages, helping you understand the extent and nature of the damages more clearly.
+                        </p>
+                        <div class="call-to-action">
+                            <h3>Need Further Assistance?</h3>
+                            <p>
+                                Our team is ready to help you with any further inquiries or to assist in processing your insurance claims. Please reach out through our live chatbot or call us directly at (555) 123-4567 for immediate assistance.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <div class="col-md-6 section">
+                <div class="card  text-white full-height" style="background:#00046b; color:white; !important">
+                    <div class="card-body">
+                        
+                        <h1> <b>Repair Cost Estimation </b> </h2>
+                        <table class="table" style="color:white;">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cost in repair_cost %}
+                                <tr class="{% if loop.last %}table-info{% endif %}">
+                                    {% if loop.last%}
+                                    <td style="color:black;"><h4><b>Total Estimated Cost</b></h4></td>
+                                    <td style="color:black;"><h4>{{ cost }}</h4></td>
+                                    {% else%}
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ cost }}</td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+            <div class="col-md-10 section"> <i class="fa-solid fa-comment fa-lg"></i>
+                <div id="botui-app" > <i>help !!!</i>
+                    <bot-ui></bot-ui>
+                    <button id="toggle-btn" class="toggle-button"> open/close</button>
+                </div>                
+                
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/botui/build/botui.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            console.log('Connected to the server!');
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            var botui = initializeBotUI(); // Initialize BotUI when the document is ready.
+        
+            document.getElementById('botui-app').addEventListener('click', function(event) {
+                if (event.target === this) { // Ensuring clicks directly on the botui-app div toggle the expansion.
+                    this.classList.toggle('expanded');
+                    initializeBotUI(this.classList.contains('expanded'));
+                }
+            });
+        
+            function toggleShape() {
+                var app = document.getElementById('botui-app');
+                // Check if currently is a circle (small size), and toggle between states.
+                if (app.style.width === '700px') {
+                    app.style.width = '60px';
+                    app.style.height = '60px';
+                    app.style.borderRadius = '50%'; // Circle
+                } else {
+                    app.style.width = '700px';
+                    app.style.height = '900px';
+                    app.style.borderRadius = '10px'; // Rectangle
+                }
+            }
+        
+            function initializeBotUI(expanded) {
+                var container = document.getElementById('botui-app');
+                if (expanded) {
+                    container.innerHTML = '<bot-ui>Hi</bot-ui><button id="toggle-btn" class="toggle-button"> ... </button>';
+                    botui = new BotUI('botui-app');
+                    bindButtonEvents();
+                    startBotUI(); // Start the BotUI interaction.
+                }
+            }
+        
+            function bindButtonEvents() {
+                document.getElementById('toggle-btn').addEventListener('click', function(event) {
+                    event.stopPropagation(); // Prevent the event from propagating to the botui-app.
+                    toggleShape();
+                });
+            }
+
+            function startBotUI() {
+                botui.message.add({
+                    content: 'Hello I am yuvi, what would you like to do next?'
+                }).then(function () {
+                    return botui.action.button({
+                        action: [
+                            { text: 'Generate Report', value: 'report' },
+                            { text: 'Call for Help', value: 'help_options' },
+                            { text: 'Restart', value: 'restart' } 
+                        ]
+                    });
+                }).then(function (res) {
+                    if (res.value === 'restart') {
+                        restartChatbot();  // Restart the chatbot if selected
+                    } else {
+                        handleResponse(res);
+                    }
+                }).catch(function (err){
+                    console.error('Error in yuvi chatbot response handling:', err);
+                })
+            }
+        
+            function handleResponse(res) {
+                switch(res.value) {
+                    case 'report':
+                        generateReport()
+                        break;
+                    case 'help_options':
+                        showHelpOptions()
+                        break;
+                    default:
+                        restartChatbot();  // Restart the chatbot if the response is not recognized
+                        break;  
+                    
+                }
+            }
+
+            function showHelpOptions() {
+                botui.message.add({
+                    content: 'what kind of help you want from me ? '
+                }).then(function(){
+                    return botui.action.button({
+                        action: [
+                            { text: 'On-the-spot Damage Repair', value: 'on_spot_repair'},
+                            { text: 'Tow Car', value: 'call_tow'},
+                            { text: 'Start Again', value: 'restart' }
+                        ]
+                    });
+                }).then(function (res){
+                    if(res.value === 'restart'){
+                        restartChatbot(); ;
+                    } else {
+                        requestLocation(res.value);
+                    }
+                });
+            }
+
+            function requestLocation(helpType){
+                botui.message.add({
+                    content: "We need to access yout location, please confirm",
+                    delay: 1000,
+                }).then(function () {
+                    return botui.action.button({
+                        action: [ 
+                            { text: 'Yes', value: 'yes'},
+                            { text: 'No', value: 'no'},
+                            { text: 'Start Again', value: 'restart'}
+                        ]
+                    })
+                }).then(function (res){
+                    if(res.value === 'yes') {
+                        fetchUserLocation(helpType);
+                    }
+                    else if(res.value === 'restart'){
+                        restartChatbot(); 
+                    } 
+                    else {
+                        botui.message.add({
+                            content: 'Location access denied, Unable to proceed'
+                        });
+                    }
+                });
+            }
+
+            function fetchUserLocation(helpType){
+                if("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition(function(position) {
+                        reverseGeocodeLocation(helpType, position.coords.latitude, position.coords.longitude);
+                    }, function () {
+                        botui.message.add({
+                            content: 'Failed to access location.',
+                        });
+                    });
+                } else {
+                    botui.message.add({
+                        content: "Geolocation is not supported by your browser",
+                    });
+                }
+            }
+
+            function reverseGeocodeLocation(helpType, lat, lng) {
+                var geocoder = new google.maps.Geocoder();
+                var latlng = {lat: parseFloat(lat), lng: parseFloat(lng)};
+                var apiKey = 'AIzaSyBwNPVNPUUaxDK7FMh_l8NatX8xsWdfE-8';
+            
+                geocoder.geocode({'location': latlng}, function(results, status) {
+                    if (status === 'OK') {
+                        if (results[0]) {
+                            var address = results[0].formatted_address;
+                            var mapsImageUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&size=600x300&markers=color:red%7C${lat},${lng}&key=${apiKey}`;
+                            var mapsLink = `https://www.google.com/maps/?q=${lat},${lng}`;
+                            botui.message.add({
+                                type: 'html',
+                                content: `<div class="map-card">
+                                            <img src="${mapsImageUrl}" alt="Location Map">
+                                            <p class="map-address">${address}</p>
+                                            <a href="${mapsLink}" target="_blank" class="map-link">View on Google Maps</a>
+                                        </div>`
+                            }).then(function () {
+                                confirmAndSendLocation(helpType, lat, lng, address);
+                            });
+                        } else {
+                            botui.message.add({content: 'No results found for the location.'});
+                        }
+                    } else {
+                        botui.message.add({content: `Geocoder failed due to: ${status}`});
+                    }
+                });
+            }
+
+            function confirmAndSendLocation(helpType, lat, lng, address) {
+                    botui.message.add({
+                        content: "Fetched Location is correct, Please confirm !!!!",
+                    }).then(function () {
+                        return botui.action.button({
+                            action: [ 
+                                { text: 'Yes', value: 'yes'},
+                                { text: 'No', value: 'no'},
+                                {text: 'Start Again', value: 'restart'}
+                            ]
+                        })
+                    }).then(function (res){
+                        if(res.value === 'yes') {
+                            sendLocationToServer(helpType, lat, lng, address);
+                        } else if(res.value === 'restart'){
+                            restartChatbot(); 
+                        } else {
+                            var location;
+                            botui.message.add({
+                                content: 'Please enter your location'
+                            }).then(function () {
+                                return botui.action.text({ 
+                                action: {
+                                    placeholder: 'Enter your location'
+                                }
+                                });
+                            }).then(function (res) { 
+                                location = res.value; 
+                                sendLocationToServer(helpType, lat, lng, location); 
+                            });
+                        }
+                });
+            }
+
+            function sendLocationToServer(helpType, lat, lng, address) {
+                var userId = sessionStorage.getItem('userId');
+                if (!userId) {
+                    console.error('User ID is not available in session storage.');
+                }
+                $.ajax({
+                    url: '/api/create_request',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        user_id: userId,
+                        help_type: helpType,
+                        latitude: lat,
+                        longitude: lng,
+                        address: address
+                    }),
+                    dataType: 'json',
+                    success: function(response) {
+                        botui.message.add({
+                            content: 'Request created! An agent will contact you soon.'
+                        });
+                        socket.on('agent_info', function(data) {
+                            console.log('Received agent info:', data);
+                            if (data.user_id === sessionStorage.getItem('userId')) {
+                                botui.message.add({
+                                    human: false,
+                                    content: data.message
+                                }).then(function() {
+                                    if (data.action_type === 'prompt_payment') {
+                                        return botui.action.button({
+                                            action: [
+                                                //{text: "Proceed to Pay", value: "pay"}
+                                                {text: "Update Montly Report", value: "pay"}
+                                            ]
+                                        });
+                                    }
+                                }).then(function(res) {
+                                    if (res && res.value === "pay") {
+                                        processPayment();
+                                    }
+                                });
+                            }
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        botui.message.add({
+                            content: 'Failed to create request. Please try again.'
+                        });
+                    }
+                });
+            }
+            
+            function processPayment() {
+                botui.message.add({
+                    loading: true,
+                    content: 'Updating your monthly report'//'Processing your payment...'
+                }).then(function(index) {
+                    setTimeout(function() {
+                        botui.message.update(index, {
+                            loading: false,
+                            content: 'Report Updated! Thank you for your patinece. Please provide feedback.'
+                        });
+                        askForFeedback();
+                    }, 2000);  // simulate payment processing delay
+                });
+            }
+            
+            function askForFeedback() {
+                botui.message.add({
+                    content: 'How would you rate our service today?',
+                    delay: 1000
+                }).then(function () {
+                    return botui.action.button({
+                        action: [
+                            {icon: '😀', value: 'great', text: 'Great'},
+                            {icon: '😐', value: 'okay', text: 'Good'},
+                            {icon: 'xxxx', value: 'bad', text: 'Okay'},
+                            {icon: 'xxxxx', value: 'bad', text: ' Bad'},
+                            {icon: '😞', value: 'bad', text: 'worst'}
+                        ]
+                    });
+                }).then(function () {
+                    return botui.action.button({
+                        action: [
+                            {icon: '😀', value: 'great', text: 'Exact Cost Estimation'},
+                            {icon: '😐', value: 'okay', text: 'Good Cost Estimation'},
+                            {icon: 'xxxx', value: 'bad', text: 'Near Cost Estimation'},
+                            {icon: 'xxxxx', value: 'bad', text: 'Bad Cost Estimation'},
+                            {icon: '😞', value: 'bad', text: 'worst Cost Estimation'}
+                        ]
+                    });
+                }).then(function (res) {
+                    botui.message.add({
+                        human: true,
+                        content: 'Thank you for your feedback: ' + res.text
+                    });
+                }).then(function () {
+                    return botui.action.button({
+                        action: [ 
+                            {text: 'Start Again', value: 'restart'}
+                        ]
+                    })
+                }).then(function (){
+                    restartChatbot()
+                })
+            }
+
+            function restartChatbot() {
+                botui.message.removeAll()
+                .then(function () {
+                    startBotUI();  // Restart the chatbot conversation
+                });
+            }
+            
+
+            function generateReport() {
+                botui.message.add({
+                    content: 'Generating your report...'
+                }).then(function () {
+                    // Assuming your server is set to generate the PDF on this route
+                    var reportUrl = '/generate_report';
+                    botui.message.add({
+                        type: 'html',
+                        content: `Report generated. <a href="${reportUrl}" target="_blank">Download Report</a>`
+                    });
+                }).then(function () {
+                    return botui.action.button({
+                        action: [ 
+                            {text: 'Start Again', value: 'restart'}
+                        ]
+                    })
+                }).then(function (){
+                    restartChatbot()
+                })
+            }
+            
+            initializeBotUI();
+            function callForHelp() {
+                botui.message.add({
+                    content: 'Contacting help, please wait...'
+                }).then(function () {
+                    botui.message.add({
+                        content: 'Help is on the way!'
+                    });
+                });
+            }
+        });
+        
+        document.addEventListener("DOMContentLoaded", function() {
+            var predictions = [{'labels': [0, 1, 5, 1, 1, 1, 1, 1, 1, 1, 1], 'scores': [0.9580981135368347, 0.933692991733551, 0.6478923559188843, 0.40146005153656006, 0.3210628032684326, 0.22431078553199768, 0.14375555515289307, 0.12079610675573349, 0.10255570709705353, 0.07489709556102753, 0.06454921513795853]}];
+        
+            var labels = {{labels}}//predictions[0].labels;
+            var scores = {{scores}}
+            var labelCount = {};
+            var labelNames = {
+                0: 'Dent',
+                1: 'Scratch',
+                2: 'Crack',
+                3: 'Broken Lamps',
+                4: 'Glass Shatter',
+                5: 'Tire Flat'
+            };
+        
+        
+            // Count each label's occurrence
+            labels.forEach(function(label) {
+                var labelName = labelNames[label]; // Convert label number to name
+                labelCount[labelName] = (labelCount[labelName] || 0) + 1;
+            });
+        
+            // Prepare data for the pie chart
+            var pieData = {
+                labels: Object.keys(labelCount),
+                datasets: [{
+                    label: 'Label Distribution',
+                    data: Object.values(labelCount),
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.4)',
+                        'rgba(54, 162, 235, 0.4)',
+                        'rgba(255, 206, 86, 0.4)',
+                        'rgba(75, 192, 192, 0.4)',
+                        'rgba(153, 102, 255, 0.4)',
+                        'rgba(255, 159, 64, 0.4)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+        
+            // Create pie chart
+            var pieCtx = document.getElementById('labelPieChart').getContext('2d');
+            var myPieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: pieData,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Label Distribution in Predictions'
+                        }
+                    }
+                }
+            });
+        
+            // Create summary text
+            var summaryText = 'Total labels detected: ' + labels.length;`<hr>`
+            Object.keys(labelCount).forEach(function(key) {
+                summaryText += `<hr><b>${key}</b>: ${labelCount[key]} occurrences`;
+            });
+            document.getElementById('summaryText').innerHTML = summaryText;
+
+
+
+            var categoryColors = [
+                        'rgba(255, 99, 132, 0.4)',
+                        'rgba(54, 162, 235, 0.4)',
+                        'rgba(255, 206, 86, 0.4)',
+                        'rgba(75, 192, 192, 0.4)',
+                        'rgba(153, 102, 255, 0.4)',
+                        'rgba(255, 159, 64, 0.4)'
+            ];
+
+            var scoreSums = {};
+            var scoreCounts = {};
+            var averages = [];
+            var categoryLabels = [];
+            var assignedColors = [];
+            
+            // Sum scores and count occurrences for each label
+            labels.forEach((label, index) => {
+                if (scoreSums[label] === undefined) {
+                    scoreSums[label] = 0;
+                    scoreCounts[label] = 0;
+                    categoryLabels[label] = labelNames[label];
+                    assignedColors[label] = categoryColors[label]; // Assign color based on label index
+                }
+                scoreSums[label] += scores[index];
+                scoreCounts[label] += 1;
+            });
+            
+            // Calculate averages
+            for (var label in scoreSums) {
+                if (scoreCounts[label] !== 0) { 
+                    averages.push(scoreSums[label] / scoreCounts[label]);
+                }
+            }
+            
+            // Get unique labels and their corresponding colors for the chart
+            var uniqueLabels = categoryLabels.filter(label => label !== undefined);
+            var backgroundColors = assignedColors.filter(color => color !== undefined);
+            
+            // Set up the chart
+            var confCtx = document.getElementById('confidenceBarChart').getContext('2d');
+            var confidenceChart = new Chart(confCtx, {
+                type: 'bar',
+                data: {
+                    labels: uniqueLabels,  // Use category names as labels
+                    datasets: [{
+                        label: 'Average Confidence Scores',
+                        data: averages,
+                        backgroundColor: backgroundColors,
+                        borderColor: backgroundColors.map(color => color.replace('0.5', '1')), // Make border color slightly darker
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 1  // Since confidence scores are typically between 0 and 1
+                        }
+                    }
+                }
+            });
+        });
+
+
+
+
+        
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

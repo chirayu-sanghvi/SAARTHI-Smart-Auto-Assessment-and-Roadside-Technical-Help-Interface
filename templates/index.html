@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Damage Detection</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        #video { width: 100%; max-width: 600px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Car Damage Detection</h1>
+        <p>Upload an image or capture from the webcam.</p>
+
+        <!-- Image upload form -->
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="image">Upload Image:</label>
+                <input type="file" class="form-control-file" id="image" name="image">
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Image</button>
+        </form>
+
+        <!-- Webcam video stream -->
+        <h2>Live Video Stream</h2>
+        <video id="video" autoplay></video>
+        <button id="startButton" class="btn btn-success">Start Camera</button>
+        <button id="captureButton" class="btn btn-warning">Capture Frame</button>
+
+        <!-- Script for handling video and capture -->
+        <script>
+            const video = document.getElementById('video');
+            const startButton = document.getElementById('startButton');
+            const captureButton = document.getElementById('captureButton');
+
+            startButton.onclick = function() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                    }).catch(function(error) {
+                        console.error('Error accessing the webcam', error);
+                    });
+            };
+
+            captureButton.onclick = function() {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(function(blob) {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'frame.jpg');
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => response.json())
+                    .then(data => console.log(data))
+                    .catch(error => console.error('Error uploading the frame', error));
+                }, 'image/jpeg');
+            };
+        </script>
+    </div>
+</body>
+</html>

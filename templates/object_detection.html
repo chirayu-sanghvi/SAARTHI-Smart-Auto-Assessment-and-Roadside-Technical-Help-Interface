@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Object Detection</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: #00046b; 
+            padding: 60px;
+            border-radius: 30px;
+            box-shadow: 0 8px 8px rgba(0, 0, 0, 0.8);
+            max-width: 900px;
+            width: 100%;
+            color: #fff;
+            font-size: 25px;
+        }
+
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input[type="file"] {
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: none;
+            background-color: #fff;
+            color: #00046b; 
+            font-size: 25px;
+        }
+
+        button[type="submit"] {
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            border: solid 10px #fff;
+            color: #00046b;
+            background-color: #d3d3d3;
+            font-size: 25px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #ffd700; 
+            transform: translateY(-2px); 
+        }
+
+        a {
+            color: #fff; 
+            text-align: center;
+            display: block;
+            margin-top: 30px;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+            font-size: 25px;
+        }
+
+        a:hover {
+            color: #ffd700; 
+            transform: translateY(-2px); 
+        }
+
+        /* Change color when hovering over the input */
+        .custom-file-input:hover {
+            background-color: #ffd700; /* Change to the desired background color */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Car Image</h1>
+        <form action="{{ url_for('object_detection') }}" method="post" enctype="multipart/form-data">
+            <input type="text"  placeholder="Enter your Car Brand" style= font-size:30px;padding:20px;> <br>
+            <input type="text"  placeholder="Enter your Car Model" style=font-size:30px;padding:20px;> <br>
+            <input type="file" name="images" multiple accept="image/*" class="custom-file-input">
+            <button type="submit" style="font-weight: bold;">Upload Images</button>
+        </form>
+        <a href="/user_dashboard"> << Go back</a>
+    </div>
+</body>
+</html>

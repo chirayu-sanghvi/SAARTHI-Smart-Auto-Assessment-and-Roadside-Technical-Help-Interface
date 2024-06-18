@@ -1,0 +1,83 @@
+body {
+    background-image: url('/static/image/background.jpg');
+    background-size: cover;
+}
+
+.btn-custom {
+    background-color: #004d99;
+    color: white;
+    border-radius: 20px;
+}
+
+.image-container {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.image-container img {
+    width: 100%;
+    height: auto;
+    transition: 0.5s all ease-in-out;
+    -webkit-transition: 0.5s all ease-in-out;
+    -moz-transition: 0.5s all ease-in-out;
+    -o-transition: 0.5s all ease-in-out;
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    width: 100%;
+    opacity: 0;
+    transition: .5s ease;
+    background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.image-container:hover .image-overlay {
+    opacity: 1;
+}
+
+.overlay-btn {
+    font-size: 20px;
+    padding: 10px 20px;
+    color: white;
+    border-color: white;
+}
+
+.btn {
+    transition: box-shadow 0.3s ease-in-out, transform 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.5); /* Shadow for 3D pop effect */
+}
+
+.btn:hover {
+    transform: translateY(-2px); /* Slightly raise the button */
+    box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+}
+
+h1 {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8); /* Shadow makes text stand out */
+}
+
+.button-container {
+    position: relative;
+    display: inline-block; /* Keep button and image grouped */
+}
+
+.button-image {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%; /* Adjust as needed */
+    display: none; /* Hide by default */
+}
+
+.button-container:hover .button-image {
+    display: block; /* Show image on hover */
+}

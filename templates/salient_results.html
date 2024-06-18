@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Salient Detection Results</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .card-img-top {
+            width: 100%;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .card-body img {
+            width: 100%;
+            height: auto;
+        }
+        .card {
+            margin-bottom: 2rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .footer-btn {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h1 class="text-center mb-4">Salient Detection Results</h1>
+        {% for result in results %}
+        <div class="card">
+            <h5 class="card-header bg-primary text-white">Result {{ loop.index }}</h5>
+            <div class="row no-gutters">
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <h5 class="card-title">Original Image</h5>
+                        <img src="{{ url_for('static', filename=result.original) }}" class="card-img-top" alt="Original Image">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-body">
+                        <h5 class="card-title">Processed Image</h5>
+                        <img src="{{ url_for('static', filename=result.processed) }}" class="card-img-top" alt="Processed Image">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <div class="footer-btn">
+            <a href="/salient_detection" class="btn btn-primary">Test Another Image</a>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

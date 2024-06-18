@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+    <h1>Welcome to the Admin Dashboard</h1>
+    <p>Hello, {{ admin.name }} from {{ admin.city }}!</p>
+    <a href="{{ url_for('add_agent') }}">Add New Agent</a><br>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</body>
+</html>
